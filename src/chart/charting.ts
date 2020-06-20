@@ -79,7 +79,8 @@ export class chart {
             const simulation: Simulation<Node, Link> = d3.forceSimulation(nodes)
                 .force("link", d3.forceLink(links).id(d => this.nodeNames[d.index] || "unknown"))
                 .force("charge", d3.forceManyBody())
-                .force("center", d3.forceCenter(this.width / 2, this.height / 2));
+                .force("center", d3.forceCenter(this.width / 2, this.height / 2))
+                .force('collision', d3.forceCollide().radius(30));
 
 
             const svg = d3.select("svg");
@@ -107,14 +108,14 @@ export class chart {
                 .call(this.drag(simulation));
 
             node.append("circle")
-                .attr("stroke", "#fff")
+                .attr("stroke", "black")
                 .attr("stroke-width", 1.5)
-                .attr("r", 5)
-                .attr("fill", "red")
+                .attr("r", 20)
+                .attr("fill", "white")
 
             /* Create the text for each block */
             node.append("text")
-                .attr("dx", d => -20)
+                .attr("dx", d => -5)
                 .text((d: Node) => this.nodeNames[d.index])
 
             node.append("title")
