@@ -12,6 +12,7 @@ interface Node extends SimulationNodeDatum {
 }
 
 interface Link extends SimulationLinkDatum<Node> {
+    direction: "increases" | "decreases"
 }
 
 export class chart {
@@ -46,16 +47,6 @@ export class chart {
             .on("end", dragended);
     }
 
-    private nodeByName = (d: unknown, ns: Node[]): Node => {
-        const d1 = d as string;
-        if (!d1) {
-            console.log(d, 'd')
-            console.log(d1, 'd1')
-        }
-        const index = this.nodeNames.indexOf(d1)
-        return ns.find(x => x.index === index)
-    };
-
     constructor(container: string, graphData: Observable<Pair[]>) {
         this.graphData$ = graphData
         this.init(container);
@@ -72,6 +63,7 @@ export class chart {
                 ns[pair.end] = pair.end
                 return ns
             }, {})
+            console.log(nodeDict, 'nd')
             this.nodeNames = Object.values(nodeDict)
 
             const nodes: Node[] = this.nodeNames.map((v, i) => {
@@ -82,6 +74,8 @@ export class chart {
                 return {id: v.start, source: v.start, target: v.end, direction: v.edge}
             });
 
+            console.log({nodes, links})
+
             const simulation: Simulation<Node, Link> = d3.forceSimulation(nodes)
                 .force("link", d3.forceLink(links).id(d => this.nodeNames[d.index] || "unknown"))
                 .force("charge", d3.forceManyBody())
@@ -90,49 +84,54 @@ export class chart {
 
             const svg = d3.select("svg");
 
-            const link = svg.append("g")
-                .attr("stroke", "#999")
-                .attr("stroke-opacity", 0.6)
-                .selectAll("line")
+            const link = svg
+                .selectAll(".line")
                 .data(links)
                 .join("line")
-                .attr("stroke-width", 2);
+                .attr("stroke-opacity", 1)
+                .attr("class", d => {
+                    const link = d as Link
+                    return `${link.direction} line`
+                })
+                .attr("stroke-width", 2)
+                .attr("stroke", d => {
+                    const link = d as Link
+                    return link.direction === "increases" ? "green" : "red"
+                });
 
-            const node = svg.append("g")
+            const node = svg
+                .selectAll(".node")
+                .data(nodes)
+                .join("g")
+                .attr("class", "node")
+                .call(this.drag(simulation));
+
+            node.append("circle")
                 .attr("stroke", "#fff")
                 .attr("stroke-width", 1.5)
-                .selectAll("circle")
-                .data(nodes)
-                .join("circle")
                 .attr("r", 5)
                 .attr("fill", "red")
-                .call(this.drag(simulation));
+
+            /* Create the text for each block */
+            node.append("text")
+                .attr("dx", d => -20)
+                .text((d: Node) => this.nodeNames[d.index])
 
             node.append("title")
                 .text((d: Node) => this.nodeNames[d.index]);
 
             simulation.on("tick", () => {
                 link
-                    .attr("x1", (d: Link) => this.asX(nodes, d.source))
-                    .attr("y1", (d: Link) => this.asY(nodes, d.source))
-                    .attr("x2", (d: Link) => this.asX(nodes, d.target))
-                    .attr("y2", (d: Link) => this.asY(nodes, d.target));
+                    .attr("x1", (d: Link) => (d.source as Node).x)
+                    .attr("y1", (d: Link) => (d.source as Node).y)
+                    .attr("x2", (d: Link) => (d.target as Node).x)
+                    .attr("y2", (d: Link) => (d.target as Node).y);
 
                 node
-                    .attr("cx", d => d.x)
-                    .attr("cy", d => d.y);
+                    .attr("transform", d => `translate(${d.x}, ${d.y})`);
             });
 
         })
-    }
-
-    private asX(nodes: Node[], nodeName: string | number | Node) {
-        const node = this.nodeByName(nodeName, nodes);
-        return node ? node.x : 0;
-    }
-    private asY(nodes: Node[], nodeName: string | number | Node) {
-        const node = this.nodeByName(nodeName, nodes);
-        return node ? node.y : 0;
     }
 }
 

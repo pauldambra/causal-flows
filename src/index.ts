@@ -13,6 +13,4 @@ const diagramDescription$ = fromEvent<InputEvent>(document.getElementById('diagr
         map(toNodeVertexPairs)
     );
 
-diagramDescription$.subscribe(e => console.log(e))
-
 new chart('#outlet', diagramDescription$)
