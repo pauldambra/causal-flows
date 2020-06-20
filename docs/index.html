@@ -1,0 +1,27 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>Causal Loops</title><style>body {
+            width: 98vw;
+            height: 98vh;
+            background-color: black;
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+        }
+
+        .container {
+            background-color: darkolivegreen;
+            margin-top: 1em;
+            margin-bottom: 1em;
+            padding: 0.5em;
+            margin-left: 1em;
+        }
+
+        .wide {
+            flex-grow: 2;
+        }
+
+        textarea {
+            resize: none;
+            width: 100%;
+            height: 75%;
+            box-sizing: border-box;
+        }</style></head><body><div class="container"><h1>Enter nodes and relations below</h1><p></p><ul><li>A node has a name.</li><li>A relation starts and ends with a node</li><li>2 nodes are linked by + or -</li></ul><p></p><textarea id="diagram-text"></textarea></div><div class="container wide"><svg width="960" height="600" id="outlet"></svg></div><script src="vendors.f9d618644c7883e0ed0e.js"></script><script src="main.fcaf863b74d5e7dcffef.js"></script></body></html>

@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "outDir": "./docs/",
+    "noImplicitAny": true,
+    "module": "commonjs",
+    "target": "ESNext",
+    "sourceMap": true
+  }
+}
