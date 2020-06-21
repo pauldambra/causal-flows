@@ -74,8 +74,6 @@ export class chart {
                 return {id: v.start, source: v.start, target: v.end, direction: v.edge}
             });
 
-            console.log({nodes, links})
-
             const simulation: Simulation<Node, Link> = d3.forceSimulation(nodes)
                 .force("link", d3.forceLink(links).id(d => this.nodeNames[d.index] || "unknown"))
                 .force("charge", d3.forceManyBody())
@@ -84,6 +82,17 @@ export class chart {
 
 
             const svg = d3.select("svg");
+
+            //arrow
+            svg.append("svg:defs")
+                .append("svg:marker")
+                .attr("id", "triangle")
+                .attr("viewBox", "0 -5 10 10")
+                .attr("refX", 15)
+                .attr("refY", -1.5)
+                .attr("markerWidth", 6)
+                .attr("markerHeight", 6)
+                .attr("orient", "auto");
 
             const link = svg
                 .selectAll(".line")
@@ -94,11 +103,32 @@ export class chart {
                     const link = d as Link
                     return `${link.direction} line`
                 })
+                .attr("data-link", d => {
+                    const link = d as Link
+                    return JSON.stringify(link)
+                })
+                .attr("marker-center", "url(#triangle)")
                 .attr("stroke-width", 2)
                 .attr("stroke", d => {
                     const link = d as Link
                     return link.direction === "increases" ? "green" : "red"
                 });
+
+            d3.interval(() => {
+                svg.selectAll(".line").each(function(d){
+                    //each line get the total length
+                    console.log(d)
+                    var totalLength = 5 // d.getTotalLength();
+                    //perform transition for line using dasharray and offset
+                    d3.select(this)
+                        .attr("stroke-dasharray", totalLength + " " + totalLength)
+                        .attr("stroke-dashoffset", totalLength)
+                        .transition()
+                        .ease(d3.easeCircle)
+                        .duration(200)
+                        .attr("stroke-dashoffset", 0);
+                })
+            }, 200)
 
             const node = svg
                 .selectAll(".node")
