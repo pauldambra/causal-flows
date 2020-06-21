@@ -4,6 +4,7 @@
     "noImplicitAny": true,
     "module": "commonjs",
     "target": "ESNext",
-    "sourceMap": true
+    "sourceMap": true,
+    "allowSyntheticDefaultImports": true
   }
 }

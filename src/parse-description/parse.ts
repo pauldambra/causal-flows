@@ -1,3 +1,42 @@
+export const toSizedNodeVertexPairs = (s: string): SizedPairs => {
+    const pairs = toNodeVertexPairs(s)
+
+    const gatheredNodes = pairs.reduce<{[id: string]: SizedNode}>((acc, curr) => {
+        if (!acc[curr.start]) {
+            acc[curr.start] = { name: curr.start, radius: 0 }
+        }
+        if (!acc[curr.end]) {
+            acc[curr.end] = { name: curr.end, radius: 0 }
+        }
+        if (curr.edge === "increases") {
+            acc[curr.end].radius += 5
+        }
+        if (curr.edge === "decreases") {
+            acc[curr.end].radius -= 5
+        }
+        return acc
+    }, {});
+    return {
+        nodes: Object.values(gatheredNodes),
+        links: pairs
+    }
+}
+
+export const toNodeVertexPairs = (s: string): Array<Pair> =>
+    s.split("\n")
+        .map(parseLine)
+        .filter(x => x !== null)
+
+export interface SizedPairs {
+    nodes: SizedNode[],
+    links: Pair[]
+}
+
+export interface SizedNode {
+    name: string
+    radius: number
+}
+
 export interface Pair {
     edge: "increases" | "decreases",
     start: string
@@ -50,8 +89,3 @@ function parseLine(s: string): Pair | null {
         end: potential.end
     } : null
 }
-
-export const toNodeVertexPairs = (s: string): Array<Pair> =>
-    s.split("\n")
-        .map(parseLine)
-        .filter(x => x !== null)
