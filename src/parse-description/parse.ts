@@ -2,17 +2,17 @@ export const toSizedNodeVertexPairs = (s: string): SizedPairs => {
     const pairs = toNodeVertexPairs(s)
 
     const gatheredNodes = pairs.reduce<{[id: string]: SizedNode}>((acc, curr) => {
-        if (!acc[curr.start]) {
-            acc[curr.start] = { name: curr.start, radius: 0 }
+        if (!acc[curr.source]) {
+            acc[curr.source] = { name: curr.source, radius: 0 }
         }
-        if (!acc[curr.end]) {
-            acc[curr.end] = { name: curr.end, radius: 0 }
+        if (!acc[curr.target]) {
+            acc[curr.target] = { name: curr.target, radius: 0 }
         }
         if (curr.edge === "increases") {
-            acc[curr.end].radius += 5
+            acc[curr.target].radius += 5
         }
         if (curr.edge === "decreases") {
-            acc[curr.end].radius -= 5
+            acc[curr.target].radius -= 5
         }
         return acc
     }, {});
@@ -39,8 +39,8 @@ export interface SizedNode {
 
 export interface Pair {
     edge: "increases" | "decreases",
-    start: string
-    end: string
+    source: string
+    target: string
 }
 
 const isLinkingChar = (x: string) => x === '+' || x === '-';
@@ -85,7 +85,7 @@ function parseLine(s: string): Pair | null {
 
     return isValidPair(potential) ? {
         edge: potential.edge === "+" ? "increases" : "decreases",
-        start: potential.start,
-        end: potential.end
+        source: potential.start,
+        target: potential.end
     } : null
 }

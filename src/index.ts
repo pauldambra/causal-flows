@@ -1,6 +1,6 @@
 import {fromEvent} from 'rxjs';
 import {debounceTime, map} from "rxjs/operators";
-import {toNodeVertexPairs} from "./parse-description/parse";
+import {toSizedNodeVertexPairs} from "./parse-description/parse";
 import {chart} from "./chart/charting";
 
 
@@ -10,7 +10,7 @@ const diagramDescription$ = fromEvent<InputEvent>(document.getElementById('diagr
         map(e => (e.target as HTMLTextAreaElement)),
         map(e => e.value),
         debounceTime(375),
-        map(toNodeVertexPairs)
+        map(toSizedNodeVertexPairs)
     );
 
 new chart('#outlet', diagramDescription$)

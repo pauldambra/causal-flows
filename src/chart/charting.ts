@@ -1,12 +1,8 @@
 import * as d3 from "d3";
 import {Observable} from "rxjs";
-import {Pair} from "../parse-description/parse";
+import {Pair, SizedNode, SizedPairs} from "../parse-description/parse";
 import {SimulationNodeDatum, SimulationLinkDatum} from "d3";
 import {Simulation} from "d3-force";
-
-interface nodeDictionary {
-    [id: string]: string
-}
 
 interface Node extends SimulationNodeDatum {
 }
@@ -17,8 +13,8 @@ interface Link extends SimulationLinkDatum<Node> {
 
 export class chart {
     private group: d3.Selection<any, any, any, any>;
-    private graphData$: Observable<Pair[]>;
-    private nodeNames: string[]
+    private graphData$: Observable<SizedPairs>;
+    private sizedNodes: SizedNode[]
     private width = 900
     private height = 500
 
@@ -47,7 +43,7 @@ export class chart {
             .on("end", dragended);
     }
 
-    constructor(container: string, graphData: Observable<Pair[]>) {
+    constructor(container: string, graphData: Observable<SizedPairs>) {
         this.graphData$ = graphData
         this.init(container);
     }
@@ -58,41 +54,24 @@ export class chart {
 
         this.graphData$.subscribe(e => {
 
-            const nodeDict = e.reduce<nodeDictionary>((ns, pair) => {
-                ns[pair.start] = pair.start
-                ns[pair.end] = pair.end
-                return ns
-            }, {})
-            console.log(nodeDict, 'nd')
-            this.nodeNames = Object.values(nodeDict)
-
-            const nodes: Node[] = this.nodeNames.map((v, i) => {
+            this.sizedNodes = e.nodes
+console.log(this.sizedNodes)
+            const nodes: Node[] = this.sizedNodes.map((v, i) => {
                 return {index: i, id: v}
             })
 
-            const links: Link[] = e.map(v => {
-                return {id: v.start, source: v.start, target: v.end, direction: v.edge}
+            const links: Link[] = e.links.map(v => {
+                return {id: v.source, source: v.source, target: v.target, direction: v.edge}
             });
 
             const simulation: Simulation<Node, Link> = d3.forceSimulation(nodes)
-                .force("link", d3.forceLink(links).id(d => this.nodeNames[d.index] || "unknown"))
+                .force("link", d3.forceLink(links).id(d => this.sizedNodes[d.index].name || "unknown"))
                 .force("charge", d3.forceManyBody())
                 .force("center", d3.forceCenter(this.width / 2, this.height / 2))
-                .force('collision', d3.forceCollide().radius(30));
+                .force('collision', d3.forceCollide().radius(d => this.sizedNodes[d.index].radius + 50));
 
 
             const svg = d3.select("svg");
-
-            //arrow
-            svg.append("svg:defs")
-                .append("svg:marker")
-                .attr("id", "triangle")
-                .attr("viewBox", "0 -5 10 10")
-                .attr("refX", 15)
-                .attr("refY", -1.5)
-                .attr("markerWidth", 6)
-                .attr("markerHeight", 6)
-                .attr("orient", "auto");
 
             const link = svg
                 .selectAll(".line")
@@ -117,7 +96,6 @@ export class chart {
             d3.interval(() => {
                 svg.selectAll(".line").each(function(d){
                     //each line get the total length
-                    console.log(d)
                     var totalLength = 5 // d.getTotalLength();
                     //perform transition for line using dasharray and offset
                     d3.select(this)
@@ -140,16 +118,16 @@ export class chart {
             node.append("circle")
                 .attr("stroke", "black")
                 .attr("stroke-width", 1.5)
-                .attr("r", 20)
+                .attr("r", d => this.sizedNodes[d.index].radius + 30)
                 .attr("fill", "white")
 
             /* Create the text for each block */
             node.append("text")
                 .attr("dx", d => -5)
-                .text((d: Node) => this.nodeNames[d.index])
+                .text((d: Node) => this.sizedNodes[d.index].name)
 
             node.append("title")
-                .text((d: Node) => this.nodeNames[d.index]);
+                .text((d: Node) => this.sizedNodes[d.index].name);
 
             simulation.on("tick", () => {
                 link
