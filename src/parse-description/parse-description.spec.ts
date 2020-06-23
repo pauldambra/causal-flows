@@ -17,7 +17,8 @@ describe('can parse descriptions', () => {
                 e: [{edge: "increases", source: "tomato + sauce", target: "brown - sauce"}]
             },
             {a: "A-B", e: [{edge: "decreases", source: "A", target: "B"}]},
-            {a: "A-B\nB+A", e: [{edge: "decreases", source: "A", target: "B"}, {edge: "increases", source: "B", target: "A"}]}
+            {a: "A-B\nB+A", e: [{edge: "decreases", source: "A", target: "B"}, {edge: "increases", source: "B", target: "A"}]},
+            {a: "A+B\nC+ B", e: [{edge: "increases", source: "A", target: "B"}, {edge: "increases", source: "C", target: "B"}]}
         ].forEach(({a, e}) => {
             it(`can parse ${a}`, function () {
                 expect(toNodeVertexPairs(a)).to.deep.equal(e)

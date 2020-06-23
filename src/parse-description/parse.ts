@@ -85,7 +85,7 @@ function parseLine(s: string): Pair | null {
 
     return isValidPair(potential) ? {
         edge: potential.edge === "+" ? "increases" : "decreases",
-        source: potential.start,
-        target: potential.end
+        source: potential.start.trim(),
+        target: potential.end.trim()
     } : null
 }
