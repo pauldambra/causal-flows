@@ -1,8 +1,12 @@
 import * as d3 from "d3";
 import {Observable} from "rxjs";
-import {Pair, SizedNode, SizedPairs} from "../parse-description/parse";
-import {SimulationNodeDatum, SimulationLinkDatum} from "d3";
+import {SizedNode, SizedPairs} from "../parse-description/parse";
+import {SimulationNodeDatum, SimulationLinkDatum, DragBehavior, DraggedElementBaseType} from "d3";
 import {Simulation} from "d3-force";
+
+interface Keyed {
+    id: SizedNode
+}
 
 interface Node extends SimulationNodeDatum {
 }
@@ -11,36 +15,40 @@ interface Link extends SimulationLinkDatum<Node> {
     direction: "increases" | "decreases"
 }
 
+const calculateRadius = (sizedNode: SizedNode): number => sizedNode.radius + 30;
+
+let sizedNodes: SizedNode[] = []
+
 export class chart {
     private group: d3.Selection<any, any, any, any>;
     private graphData$: Observable<SizedPairs>;
-    private sizedNodes: SizedNode[]
     private width = 900
     private height = 500
 
-    private drag = (simulation: Simulation<Node, Link>) => {
+    private drag = (simulation: Simulation<Node, Link>): DragBehavior<DraggedElementBaseType, unknown, unknown> => {
 
-        function dragstarted(d: Node) {
+        const onDragStart = (d: Node) => {
             if (!d3.event.active) simulation.alphaTarget(0.3).restart();
             d.fx = d.x;
             d.fy = d.y;
-        }
+        };
 
-        function dragged(d: Node) {
+        const onDrag = (d: Node) => {
             d.fx = d3.event.x;
             d.fy = d3.event.y;
-        }
+        };
 
-        function dragended(d: Node) {
+        const onDragEnd = (d: Node) => {
             if (!d3.event.active) simulation.alphaTarget(0);
             d.fx = null;
             d.fy = null;
-        }
+        };
 
-        return d3.drag()
-            .on("start", dragstarted)
-            .on("drag", dragged)
-            .on("end", dragended);
+        const drag = d3.drag() as DragBehavior<DraggedElementBaseType, unknown, unknown>;
+        return drag
+            .on("start", onDragStart)
+            .on("drag", onDrag)
+            .on("end", onDragEnd);
     }
 
     constructor(container: string, graphData: Observable<SizedPairs>) {
@@ -54,9 +62,10 @@ export class chart {
 
         this.graphData$.subscribe(e => {
 
-            this.sizedNodes = e.nodes
-console.log(this.sizedNodes)
-            const nodes: Node[] = this.sizedNodes.map((v, i) => {
+            sizedNodes = e.nodes
+            console.log(sizedNodes)
+
+            const nodes: (Keyed & Node)[] = sizedNodes.map((v, i) => {
                 return {index: i, id: v}
             })
 
@@ -65,10 +74,10 @@ console.log(this.sizedNodes)
             });
 
             const simulation: Simulation<Node, Link> = d3.forceSimulation(nodes)
-                .force("link", d3.forceLink(links).id(d => this.sizedNodes[d.index].name || "unknown"))
+                .force("link", d3.forceLink(links).id(d => sizedNodes[d.index].name || "unknown"))
                 .force("charge", d3.forceManyBody())
                 .force("center", d3.forceCenter(this.width / 2, this.height / 2))
-                .force('collision', d3.forceCollide().radius(d => this.sizedNodes[d.index].radius + 50));
+                .force('collision', d3.forceCollide().radius(d => sizedNodes[d.index].radius + 50));
 
 
             const svg = d3.select("svg");
@@ -94,7 +103,7 @@ console.log(this.sizedNodes)
                 });
 
             d3.interval(() => {
-                svg.selectAll(".line").each(function(d){
+                svg.selectAll(".line").each(function (d) {
                     //each line get the total length
                     var totalLength = 5 // d.getTotalLength();
                     //perform transition for line using dasharray and offset
@@ -103,31 +112,33 @@ console.log(this.sizedNodes)
                         .attr("stroke-dashoffset", totalLength)
                         .transition()
                         .ease(d3.easeCircle)
-                        .duration(200)
                         .attr("stroke-dashoffset", 0);
                 })
-            }, 200)
+            }, 250)
 
             const node = svg
                 .selectAll(".node")
                 .data(nodes)
                 .join("g")
                 .attr("class", "node")
-                .call(this.drag(simulation));
+                .call(() => {
+                    return this.drag(simulation)
+                });
 
             node.append("circle")
                 .attr("stroke", "black")
                 .attr("stroke-width", 1.5)
-                .attr("r", d => this.sizedNodes[d.index].radius + 30)
+                .attr("r", d => {
+                    const sizedNode = sizedNodes[d.index];
+                    return calculateRadius(sizedNode);
+                })
                 .attr("fill", "white")
 
             /* Create the text for each block */
             node.append("text")
-                .attr("dx", d => -5)
-                .text((d: Node) => this.sizedNodes[d.index].name)
-
-            node.append("title")
-                .text((d: Node) => this.sizedNodes[d.index].name);
+                .attr("text-anchor", "middle")
+                .attr("alignment-baseline", "central")
+                .text((d: Node) => sizedNodes[d.index].name)
 
             simulation.on("tick", () => {
                 link
@@ -137,10 +148,12 @@ console.log(this.sizedNodes)
                     .attr("y2", (d: Link) => (d.target as Node).y);
 
                 node
-                    .attr("transform", d => `translate(${d.x}, ${d.y})`);
+                    .attr("transform", d => `translate(${d.x}, ${d.y})`)
             });
 
         })
     }
+
+
 }
 
