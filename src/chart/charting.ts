@@ -1,7 +1,7 @@
 import * as d3 from "d3";
+import {DragBehavior, DraggedElementBaseType, SimulationLinkDatum, SimulationNodeDatum} from "d3";
 import {Observable} from "rxjs";
 import {SizedNode, SizedPairs} from "../parse-description/parse";
-import {SimulationNodeDatum, SimulationLinkDatum, DragBehavior, DraggedElementBaseType} from "d3";
 import {Simulation} from "d3-force";
 
 interface Keyed {
@@ -58,12 +58,13 @@ export class chart {
 
 
     private init(container: string) {
-        this.group = d3.select(container).append('g');
+        const svg = d3.select(container);
+
+        const linesGroup = svg.append('g').attr('class', 'lines')
 
         this.graphData$.subscribe(e => {
 
             sizedNodes = e.nodes
-            console.log(sizedNodes)
 
             const nodes: (Keyed & Node)[] = sizedNodes.map((v, i) => {
                 return {index: i, id: v}
@@ -79,10 +80,7 @@ export class chart {
                 .force("center", d3.forceCenter(this.width / 2, this.height / 2))
                 .force('collision', d3.forceCollide().radius(d => sizedNodes[d.index].radius + 50));
 
-
-            const svg = d3.select("svg");
-
-            const link = svg
+            const link = linesGroup
                 .selectAll(".line")
                 .data(links)
                 .join("line")
@@ -97,6 +95,8 @@ export class chart {
                 })
                 .attr("marker-center", "url(#triangle)")
                 .attr("stroke-width", 2)
+                .attr("stroke-dasharray", "5 5")
+                .attr("stroke-dashoffset", 5)
                 .attr("stroke", d => {
                     const link = d as Link
                     return link.direction === "increases" ? "green" : "red"
@@ -105,11 +105,9 @@ export class chart {
             d3.interval(() => {
                 svg.selectAll(".line").each(function (d) {
                     //each line get the total length
-                    var totalLength = 5 // d.getTotalLength();
+                     // d.getTotalLength();
                     //perform transition for line using dasharray and offset
                     d3.select(this)
-                        .attr("stroke-dasharray", totalLength + " " + totalLength)
-                        .attr("stroke-dashoffset", totalLength)
                         .transition()
                         .ease(d3.easeCircle)
                         .attr("stroke-dashoffset", 0);
@@ -124,6 +122,9 @@ export class chart {
                 .call(() => {
                     return this.drag(simulation)
                 });
+
+            node.selectAll("circle").remove()
+            node.selectAll("text").remove()
 
             node.append("circle")
                 .attr("stroke", "black")
