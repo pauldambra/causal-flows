@@ -1,3 +1,46 @@
+
+const isLinkingChar = (x: string) => x === '+' || x === '-';
+
+const finishedReadingStart = (inQuotedString: boolean, x: string) => !inQuotedString && isLinkingChar(x);
+
+const isWordBoundary = (x: string) => x === "\"";
+
+const isValidPair = (potential: { edge: string; start: string; end: string }) =>
+    potential.start !== "" && potential.end !== "" && isLinkingChar(potential.edge);
+
+const parseLine = (s: string): Pair | null => {
+    const potential = {
+        edge: "",
+        start: "",
+        end: ""
+    }
+
+    let inQuotedString = false
+    let readingStart = true
+
+    s.split('')
+        .forEach(x => {
+            if (isWordBoundary(x)) {
+                inQuotedString = !inQuotedString
+            } else if (finishedReadingStart(inQuotedString, x)) {
+                potential.edge = x
+                readingStart = false
+            } else {
+                if (readingStart) {
+                    potential.start += x
+                } else {
+                    potential.end += x
+                }
+            }
+        })
+
+    return isValidPair(potential) ? {
+        edge: potential.edge === "+" ? "increases" : "decreases",
+        source: potential.start.trim(),
+        target: potential.end.trim()
+    } : null
+};
+
 export const toSizedNodeVertexPairs = (s: string): SizedPairs => {
     const pairs = toNodeVertexPairs(s)
 
@@ -41,51 +84,4 @@ export interface Pair {
     edge: "increases" | "decreases",
     source: string
     target: string
-}
-
-const isLinkingChar = (x: string) => x === '+' || x === '-';
-
-function finishedReadingStart(inQuotedString: boolean, x: string) {
-    return !inQuotedString && isLinkingChar(x);
-}
-
-function isWordBoundary(x: string) {
-    return x === "\"";
-}
-
-function isValidPair(potential: { edge: string; start: string; end: string }) {
-    return potential.start !== "" && potential.end !== "" && isLinkingChar(potential.edge);
-}
-
-function parseLine(s: string): Pair | null {
-    const potential = {
-        edge: "",
-        start: "",
-        end: ""
-    }
-
-    let inQuotedString = false
-    let readingStart = true
-
-    s.split('')
-        .forEach(x => {
-            if (isWordBoundary(x)) {
-                inQuotedString = !inQuotedString
-            } else if (finishedReadingStart(inQuotedString, x)) {
-                potential.edge = x
-                readingStart = false
-            } else {
-                if (readingStart) {
-                    potential.start += x
-                } else {
-                    potential.end += x
-                }
-            }
-        })
-
-    return isValidPair(potential) ? {
-        edge: potential.edge === "+" ? "increases" : "decreases",
-        source: potential.start.trim(),
-        target: potential.end.trim()
-    } : null
 }

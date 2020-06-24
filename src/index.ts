@@ -1,7 +1,7 @@
 import {fromEvent} from 'rxjs';
 import {debounceTime, map} from "rxjs/operators";
 import {toSizedNodeVertexPairs} from "./parse-description/parse";
-import {chart} from "./chart/charting";
+import {init} from "./chart/charting";
 
 
 
@@ -13,4 +13,4 @@ const diagramDescription$ = fromEvent<InputEvent>(document.getElementById('diagr
         map(toSizedNodeVertexPairs)
     );
 
-new chart('#outlet', diagramDescription$)
+init('#outlet', diagramDescription$)
