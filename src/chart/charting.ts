@@ -76,7 +76,7 @@ export const init = (container: string, graphData$: Observable<SizedPairs>) => {
                 .force("link", d3.forceLink(e.links).id(d => e.sizedNodes[d.index].name || "unknown"))
                 .force("charge", d3.forceManyBody())
                 .force("center", d3.forceCenter(900 / 2, 500 / 2))
-                .force('collision', d3.forceCollide().radius(d => e.sizedNodes[d.index].radius + 50));
+                .force('collision', d3.forceCollide().radius(d => e.sizedNodes[d.index].radius + 80));
 
             const link = linesGroup
                 .selectAll(".line")
