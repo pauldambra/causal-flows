@@ -165,6 +165,7 @@ describe('can parse descriptions', () => {
             {a: "just some text", e: []},
             {a: "+B", e: []},
             {a: "", e: []},
+            {a: null, e: []},
             {a: "A-B\nB+", e: [{edge: "decreases", source: "A", target: "B"}]}
         ].forEach(({a, e}) => {
             it(`can parse ${a}`, function () {

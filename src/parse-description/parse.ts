@@ -66,9 +66,9 @@ export const toSizedNodeVertexPairs = (s: string): SizedPairs => {
 }
 
 export const toNodeVertexPairs = (s: string): Array<Pair> =>
-    s.split("\n")
+    s ? s.split("\n")
         .map(parseLine)
-        .filter(x => x !== null)
+        .filter(x => x !== null) : []
 
 export interface SizedPairs {
     nodes: SizedNode[],
