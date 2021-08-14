@@ -16,7 +16,7 @@ interface Link extends SimulationLinkDatum<Node> {
     direction: "increases" | "decreases"
 }
 
-const calculateRadius = (sizedNode: SizedNode): number => sizedNode.radius + 30;
+const calculateRadius = (sizedNode: SizedNode): number => sizedNode.radius + 60;
 
 const drag = (simulation: Simulation<Node, Link>): DragBehavior<DraggedElementBaseType, unknown, unknown> => {
 
